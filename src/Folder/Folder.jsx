@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Folder({ explorer }) {
+function Folder({ handleInsertNode, explorer }) {
   const [expand, setExpand] = useState(false);
   const [showInput, setShowInput] = useState({
     visible: false,
@@ -9,11 +9,18 @@ function Folder({ explorer }) {
 
   const handleStopPropagation = (e, isFolder) => {
     e.stopPropagation();
-    setExpand(true)
+    setExpand(true);
     setShowInput({
       visible: true,
       isFolder,
     });
+  };
+
+  const onAddFolder = (e) => {
+    if (e.keyCode === 13 && e.target.value) {
+      handleInsertNode(explorer.id, e.target.value, showInput.isFolder);
+      setShowInput({ ...showInput, visible: false });
+    }
   };
   if (explorer.isFolder) {
     return (
@@ -29,21 +36,26 @@ function Folder({ explorer }) {
             </button>
           </div>
         </div>
-        {
-            showInput.visible && <div className="inputContainer">
-                <span>{showInput.isFolder ? "🗂️" : "📄"}</span>
-                <input className="inputContainer__input" autoFocus onBlur={()=> setShowInput({...showInput, visible: false})} />
-            </div>
-          }
+        {showInput.visible && (
+          <div className="inputContainer">
+            <span>{showInput.isFolder ? "🗂️" : "📄"}</span>
+            <input
+              className="inputContainer__input"
+              autoFocus
+              onBlur={() => setShowInput({ ...showInput, visible: false })}
+              onKeyDown={onAddFolder}
+            />
+          </div>
+        )}
         <div style={{ display: expand ? "block" : "none", paddingLeft: 5 }}>
           {explorer.items.map((x) => {
-            return <Folder explorer={x} key={x.id} />;
+            return <Folder handleInsertNode={handleInsertNode} explorer={x} key={x.id} />;
           })}
         </div>
       </div>
     );
   } else {
-    return <div className="file">📄{explorer.name}</div>;
+    return <div className="file" onKeyDown={onAddFolder}>📄{explorer.name}</div>;
   }
 }
 
